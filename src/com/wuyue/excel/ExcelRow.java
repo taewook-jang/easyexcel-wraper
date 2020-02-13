@@ -1,39 +1,48 @@
 package com.wuyue.excel;
 
 import com.alibaba.excel.metadata.BaseRowModel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 基础“行”对象
  */
-@ToString
+@Data
 public class ExcelRow extends BaseRowModel {
 
     public static final int SUCCESS_CODE = 0;
 
     public static final int FAILED_CODE = 2;
 
-    /**
-     * 所属行数，从0开始
-     */
-    @Getter
-    @Setter
     private int rowNum = SUCCESS_CODE;
 
-    /**
-     * 校验码，当承载“行”的对象有设置注解，且校验不通过时，会将结果放置于此字段
-     */
-    @Getter
-    @Setter
+    private int colNum = SUCCESS_CODE;
+
+    private List<BindingError> bindingErrorList = new ArrayList<>();
+
     private int validateCode;
 
-    /**
-     * 校验消息，业务尽量使用校验码做判断
-     */
-    @Getter
-    @Setter
     private String validateMessage;
+
+    public boolean hasErrors() {
+        return bindingErrorList.size() == 0 ? false : true;
+    }
+
+    public void setError(BindingError error) {
+        bindingErrorList.add(error);
+    }
+
+    @Data
+    @RequiredArgsConstructor(staticName = "of")
+    public static class BindingError {
+
+        @NonNull
+        private String fieldName;
+        @NonNull
+        private String errorMessage;
+
+    }
 
 }

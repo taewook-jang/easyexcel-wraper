@@ -13,7 +13,7 @@
         <jdk.version>1.8</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <easyexcel.version>1.1.2-beat1</easyexcel.version>
+        <easyexcel.version>2.1.6</easyexcel.version>
         <lombok.version>1.18.6</lombok.version>
         <hibernate-validator.version>6.1.0.Alpha4</hibernate-validator.version>
     </properties>

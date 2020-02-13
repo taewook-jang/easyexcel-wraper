@@ -1,6 +1,7 @@
 package com.wuyue.excel.validate;
 
 import com.wuyue.excel.ExcelRow;
+import com.wuyue.excel.ExcelRow.BindingError;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ public class NotDuplicateValidator {
             if (fieldMap.containsKey(name)) {
                 if (fieldMap.get(name).contains(value)) {
                     NotDuplicate notDuplicate = field.getAnnotation(NotDuplicate.class);
+                    r.setError(BindingError.of(name, notDuplicate.message()));
                     r.setValidateCode(notDuplicate.code());
                     r.setValidateMessage(notDuplicate.message());
                     return false;

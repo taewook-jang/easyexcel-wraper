@@ -2,6 +2,9 @@ package com.wuyue.excel;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.metadata.Head;
+import com.alibaba.excel.util.StringUtils;
+import com.wuyue.excel.ExcelRow.BindingError;
 import com.wuyue.excel.validate.HibernateValidator;
 import com.wuyue.excel.validate.NotDuplicateValidator;
 import lombok.Getter;
@@ -10,9 +13,7 @@ import lombok.Setter;
 import javax.validation.ConstraintViolation;
 import javax.validation.groups.Default;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,9 +42,30 @@ public class BaseEventListener<T extends ExcelRow> extends AnalysisEventListener
     public void invoke(T r, AnalysisContext analysisContext) {
         recoverEmptyRow(analysisContext.getCurrentRowNum() - 1, rows.size());
         validate(r);
-        r.setRowNum(analysisContext.getCurrentRowNum());
+
+        Map<Integer, Head> headMap = analysisContext.currentReadHolder().excelReadHeadProperty().getHeadMap();
+
+        Map<String, Integer> columnMetaMap = new HashMap<>();
+
+        for (Map.Entry<Integer, Head> entry : headMap.entrySet()) {
+            Head head = entry.getValue();
+            columnMetaMap.put(head.getFieldName(), head.getColumnIndex());
+        }
+
+
+        /*if (r.getValidateCode() == 2) {
+            r.setRowNum(analysisContext.readRowHolder().getRowIndex());
+            //r.setColNum(analysisContext.get);
+            rows.add(r);
+        }*/
+
+        r.setRowNum(analysisContext.readRowHolder().getRowIndex());
+        //r.setColNum(analysisContext.get);
         rows.add(r);
+
     }
+
+
 
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
@@ -51,9 +73,14 @@ public class BaseEventListener<T extends ExcelRow> extends AnalysisEventListener
     }
 
     private void validate(T r) {
+        customValidate(r);
+            hibernateValidate(r);
+
+/*
         if (customValidate(r)) {
             hibernateValidate(r);
         }
+*/
     }
 
     private boolean customValidate(T r) {
@@ -78,6 +105,7 @@ public class BaseEventListener<T extends ExcelRow> extends AnalysisEventListener
         Set<ConstraintViolation<T>> validateSet = HibernateValidator.getValidator().validate(r, Default.class);
         if (validateSet != null && !validateSet.isEmpty()) {
             ConstraintViolation<T> constraint = validateSet.stream().findAny().orElse(null);
+            r.setError(BindingError.of("email", constraint.getMessage()));
             r.setValidateCode(ExcelRow.FAILED_CODE);
             r.setValidateMessage(constraint.getMessage());
         }
